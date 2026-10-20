@@ -216,15 +216,18 @@ nav button[aria-current="page"] { background: var(--primary); color: var(--on-pr
     <section class="screen" id="v-set" hidden>
       <h2>הגדרות</h2>
       <div class="card">
-        <h3>מפתח לחוות דעת אוטומטית</h3>
-        <div class="choices">
-          <label class="choice"><input type="radio" name="prov" value="gemini">Google Gemini (חינמי)</label>
-          <label class="choice"><input type="radio" name="prov" value="claude">Claude (בתשלום)</label>
-        </div>
+        <h3>מפתח חינמי לחוות דעת</h3>
+        <p class="muted">חוות הדעת פועלות עם Google Gemini, בחינם. מפתח אפשר לקבל פעם אחת בלבד, בשלושה צעדים:</p>
+        <ol class="steps">
+          <li>לחצו על הכפתור הכתום ואשרו כניסה עם חשבון Google.</li>
+          <li>באתר לחצו <b>Create API key</b> והעתיקו את המפתח.</li>
+          <li>חזרו לכאן ולחצו <b>הדבקה</b>, ואז <b>שמירה</b>.</li>
+        </ol>
+        <a class="btn accent block" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">קבלת מפתח חינמי</a>
         <p class="muted" id="prov-help"></p>
         <label for="key" class="tag">המפתח</label>
         <input type="password" id="key" autocomplete="off" placeholder="sk-ant-...">
-        <div class="row"><button class="btn primary" id="key-save" type="button">שמירה</button><button class="btn" id="key-clear" type="button">מחיקת המפתח</button></div>
+        <div class="row"><button class="btn" id="key-paste" type="button">הדבקה</button><button class="btn primary" id="key-save" type="button">שמירה</button><button class="btn" id="key-clear" type="button">מחיקת המפתח</button></div>
         <div id="key-msg" aria-live="polite"></div>
       </div>
       <div class="card">
@@ -329,8 +332,7 @@ nav button[aria-current="page"] { background: var(--primary); color: var(--on-pr
       fr.onerror = rej; fr.readAsDataURL(blob);
     });
   }
-  function provider() { return store.get("provider") === "claude" ? "claude" : "gemini"; }
-  function keyName() { return "apikey_" + provider(); }
+  function keyName() { return "apikey_gemini"; }
   async function callGemini(prompt, blobs, signal, key) {
     var parts = [];
     for (var i = 0; i < blobs.length; i++) parts.push({ inline_data: { mime_type: "image/jpeg", data: await toB64(blobs[i]) } });
@@ -353,25 +355,7 @@ nav button[aria-current="page"] { background: var(--primary); color: var(--on-pr
   async function callClaude(prompt, blobs, signal) {
     var key = store.get(keyName());
     if (!key) throw { code: "no_key" };
-    if (provider() === "gemini") return callGemini(prompt, blobs, signal, key);
-    var content = [];
-    for (var i = 0; i < blobs.length; i++) content.push({ type: "image", source: { type: "base64", media_type: "image/jpeg", data: await toB64(blobs[i]) } });
-    content.push({ type: "text", text: prompt });
-    var resp;
-    try {
-      resp = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST", signal: signal,
-        headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
-        body: JSON.stringify({ model: MODEL, max_tokens: 2500, messages: [{ role: "user", content: content }] })
-      });
-    } catch (e) { throw { code: e && e.name === "AbortError" ? "cancelled" : "network" }; }
-    if (resp.status === 401) throw { code: "bad_key" };
-    if (resp.status === 429) throw { code: "rate_limited" };
-    if (!resp.ok) throw { code: "upstream_error" };
-    var data = await resp.json();
-    var txt = (data.content || []).map(function (c) { return c.text || ""; }).join("");
-    var a = txt.indexOf("{"), b = txt.lastIndexOf("}");
-    try { return JSON.parse(txt.slice(a, b + 1)); } catch (e) { throw { code: "invalid_json" }; }
+    return callGemini(prompt, blobs, signal, key);
   }
 
   var SLOTS = [
@@ -420,7 +404,7 @@ nav button[aria-current="page"] { background: var(--primary); color: var(--on-pr
   };
   var SEV = { good: "תקין", warn: "שימו לב", bad: "בעיה" };
   var ERR = {
-    no_key: "כדי לקבל חוות דעת צריך להכניס מפתח בהגדרות (כפתור ההגדרות למעלה).",
+    no_key: "כדי לקבל חוות דעת צריך מפתח חינמי מ-Google. לחצו על גלגל ההגדרות למעלה ופעלו לפי ההוראות.",
     bad_key: "המפתח לא תקין. בדקו אותו בהגדרות.",
     network: "אין חיבור לאינטרנט. נסו שוב כשיש קליטה.",
     rate_limited: "בוצעו יותר מדי בקשות. חכו כמה דקות ונסו שוב.",
@@ -696,26 +680,23 @@ nav button[aria-current="page"] { background: var(--primary); color: var(--on-pr
   /* ---------- settings ---------- */
   $("#open-set").onclick = function () { go("set"); };
   $("#set-back").onclick = function () { go("scan"); };
-  var HELP = {
-    gemini: "חינמי, בלי כרטיס אשראי. נכנסים ל-aistudio.google.com/apikey עם חשבון Google, לוחצים Create API key ומעתיקים את המפתח לכאן. יש מכסה יומית חינמית, שמספיקה לכמה בדיקות ביום.",
-    claude: "בתשלום לפי שימוש. מפתח מ-console.anthropic.com. בדרך כלל איכות הניתוח גבוהה יותר."
-  };
-  function showProv() {
-    var p = provider();
-    document.querySelectorAll('input[name="prov"]').forEach(function (i) { i.checked = i.value === p; });
-    $("#prov-help").textContent = HELP[p] + " המפתח נשמר רק בטלפון הזה.";
-    $("#key").value = store.get(keyName()) || "";
-    $("#key").placeholder = p === "gemini" ? "AIza..." : "sk-ant-...";
-    $("#key-msg").innerHTML = "";
-  }
-  document.querySelectorAll('input[name="prov"]').forEach(function (i) { i.onchange = function () { store.set("provider", i.value); showProv(); }; });
-  showProv();
-  $("#key-save").onclick = function () {
+  $("#prov-help").textContent = "יש מכסה יומית חינמית, שמספיקה לכמה בדיקות ביום. אין צורך בכרטיס אשראי. המפתח נשמר רק בטלפון הזה.";
+  $("#key").value = store.get(keyName()) || "";
+  $("#key").placeholder = "AIza...";
+  function saveKey() {
     var v = $("#key").value.trim();
     if (!v) { $("#key-msg").innerHTML = '<div class="notice">הדביקו את המפתח בשדה.</div>'; return; }
     store.set(keyName(), v);
     $("#scan-msg").innerHTML = "";
     $("#key-msg").innerHTML = '<div class="pill good"><span aria-hidden="true">✔</span>המפתח נשמר</div>';
+  }
+  $("#key-save").onclick = saveKey;
+  $("#key-paste").onclick = async function () {
+    try {
+      var t = (await navigator.clipboard.readText()).trim();
+      if (t) { $("#key").value = t; saveKey(); return; }
+      $("#key-msg").innerHTML = '<div class="notice">הלוח ריק. העתיקו קודם את המפתח באתר של Google.</div>';
+    } catch (e) { $("#key-msg").innerHTML = '<div class="notice">לא הצלחנו לקרוא מהלוח. לחצו על השדה והדביקו ידנית, ואז שמירה.</div>'; }
   };
   $("#key-clear").onclick = function () { try { localStorage.removeItem(keyName()); } catch (e) {} $("#key").value = ""; $("#key-msg").innerHTML = '<div class="pill good">המפתח נמחק</div>'; };
   $("#src").value = store.get("src") || "";

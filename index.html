@@ -1,0 +1,737 @@
+<!doctype html>
+<html lang="he"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2A5528">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>שדה הארטישוק</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap">
+<style>
+/* Layout: one big task per screen, fixed bottom tab bar with words, oversized touch targets, text-size switch in header. */
+:root {
+  --bg: #F1F4EE;
+  --surface: #FFFFFF;
+  --fg: #1B2619;
+  --muted: #4A5A47;
+  --line: #C5D0C0;
+  --primary: #2A5528;
+  --on-primary: #FFFFFF;
+  --accent: #6D3A80;
+  --on-accent: #FFFFFF;
+  --good: #1F6B2A; --good-bg: #DDF0DC;
+  --warn: #8A4B00; --warn-bg: #FFE9C2;
+  --bad: #A3201B; --bad-bg: #FBDAD6;
+  --ref: #F59E0B;
+  --font: "Heebo", "Arial Hebrew", Arial, sans-serif;
+  --scale: 1;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121811; --surface: #1C251A; --fg: #EEF4EA; --muted: #B4C3AF; --line: #3B4938;
+    --primary: #8FCB82; --on-primary: #0F1C0E;
+    --accent: #D2A2E6; --on-accent: #26102F;
+    --good: #9BDC93; --good-bg: #1E3A1E;
+    --warn: #FFC56B; --warn-bg: #43300A;
+    --bad: #FF9C94; --bad-bg: #4A1A17;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121811; --surface: #1C251A; --fg: #EEF4EA; --muted: #B4C3AF; --line: #3B4938;
+  --primary: #8FCB82; --on-primary: #0F1C0E;
+  --accent: #D2A2E6; --on-accent: #26102F;
+  --good: #9BDC93; --good-bg: #1E3A1E;
+  --warn: #FFC56B; --warn-bg: #43300A;
+  --bad: #FF9C94; --bad-bg: #4A1A17;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { padding-top: env(safe-area-inset-top, 0px); }
+input[type="password"], input[type="text"].field { width: 100%; min-height: 3em; border: 2px solid var(--line); border-radius: 14px; padding: 8px 14px; background: var(--surface); direction: ltr; text-align: left; }
+.iconbtn { min-width: 2.6em; min-height: 2.6em; border: 2px solid var(--line); background: var(--surface); border-radius: 12px; cursor: pointer; display: grid; place-items: center; }
+.iconbtn svg { width: 1.4em; height: 1.4em; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+body {
+  margin: 0;
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font); font-size: calc(20px * var(--scale)); line-height: 1.55;
+  padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 calc(6em);
+}
+#app { max-width: 40em; margin-inline: auto; }
+button, input, textarea, select { font: inherit; color: inherit; }
+:focus-visible { outline: 4px solid var(--accent); outline-offset: 3px; }
+h1, h2, h3 { line-height: 1.25; margin: 0; text-wrap: balance; }
+h1 { font-size: 1.5em; font-weight: 800; }
+h2 { font-size: 1.45em; font-weight: 800; }
+h3 { font-size: 1.15em; font-weight: 700; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 16px 8px; }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.brand svg { width: 2em; height: 2em; flex: none; color: var(--primary); }
+.textsize { display: flex; gap: 6px; flex: none; }
+.textsize button { min-width: 3em; min-height: 2.6em; border: 2px solid var(--line); background: var(--surface); border-radius: 12px; font-weight: 700; cursor: pointer; }
+.textsize button[aria-pressed="true"] { border-color: var(--primary); background: var(--primary); color: var(--on-primary); }
+.screen { display: flex; flex-direction: column; gap: 18px; padding-top: 8px; }
+.card { background: var(--surface); border: 2px solid var(--line); border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 3.3em; padding: 10px 20px; border-radius: 16px; border: 3px solid var(--primary); background: var(--surface); color: var(--primary); font-weight: 700; font-size: 1em; cursor: pointer; text-align: center; }
+.btn.primary { background: var(--primary); color: var(--on-primary); }
+.btn.accent { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+.btn.block { width: 100%; }
+.btn svg { width: 1.4em; height: 1.4em; }
+.row { display: flex; gap: 12px; flex-wrap: wrap; }
+.row > * { flex: 1 1 10em; }
+.slot { display: grid; grid-template-columns: 6em 1fr; gap: 14px; align-items: center; }
+.slot .thumb { width: 6em; height: 6em; border-radius: 14px; border: 2px dashed var(--line); background: var(--bg); display: grid; place-items: center; overflow: hidden; color: var(--muted); font-size: .8em; text-align: center; }
+.slot .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.slot .acts { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.slot .acts .btn { min-height: 2.8em; padding: 6px 12px; }
+.tag { font-size: .8em; font-weight: 700; color: var(--muted); }
+textarea { width: 100%; min-height: 5em; border: 2px solid var(--line); border-radius: 14px; padding: 12px; background: var(--surface); resize: vertical; }
+input[type="search"] { width: 100%; min-height: 3em; border: 2px solid var(--line); border-radius: 14px; padding: 8px 14px; background: var(--surface); }
+.pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; border-radius: 999px; font-weight: 800; width: fit-content; }
+.pill.good { background: var(--good-bg); color: var(--good); }
+.pill.attention, .pill.warn { background: var(--warn-bg); color: var(--warn); }
+.pill.problem, .pill.bad { background: var(--bad-bg); color: var(--bad); }
+.finding { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; align-items: start; padding-block: 12px; border-top: 2px solid var(--line); }
+.finding .pill { padding: 2px 12px; font-size: .85em; }
+.finding .d { grid-column: 1 / -1; }
+ol.steps { margin: 0; padding-inline-start: 1.6em; display: flex; flex-direction: column; gap: 10px; }
+ol.steps li::marker { font-weight: 800; color: var(--primary); }
+.notice { background: var(--warn-bg); color: var(--warn); border-radius: 14px; padding: 12px 16px; font-weight: 500; }
+.fine { font-size: .8em; color: var(--muted); }
+.choices { display: grid; gap: 10px; }
+.choice { display: flex; align-items: center; gap: 12px; min-height: 3.3em; padding: 8px 16px; border: 3px solid var(--line); border-radius: 16px; background: var(--surface); cursor: pointer; font-weight: 500; }
+.choice input { width: 1.4em; height: 1.4em; accent-color: var(--primary); flex: none; }
+.choice:has(input:checked) { border-color: var(--primary); background: var(--good-bg); }
+.stage { position: relative; border-radius: 14px; overflow: hidden; background: #000; }
+.stage canvas { display: block; width: 100%; height: auto; touch-action: none; }
+.stage .empty { padding: 40px 16px; color: #ddd; text-align: center; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-weight: 700; font-size: .9em; }
+.legend i { display: inline-block; width: 1em; height: 1em; border-radius: 50%; margin-inline-end: 6px; vertical-align: -.15em; border: 2px solid var(--fg); }
+.big { font-size: 2.4em; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.measures { display: grid; grid-template-columns: repeat(auto-fit, minmax(8em, 1fr)); gap: 12px; }
+.measures > div { background: var(--bg); border-radius: 14px; padding: 12px 16px; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { min-height: 2.6em; padding: 4px 18px; border-radius: 999px; border: 2px solid var(--line); background: var(--surface); font-weight: 700; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+details { border: 2px solid var(--line); border-radius: 16px; background: var(--surface); }
+details summary { list-style: none; cursor: pointer; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; font-weight: 700; min-height: 3.3em; }
+details summary::-webkit-details-marker { display: none; }
+details summary::after { content: "＋"; font-size: 1.3em; color: var(--primary); flex: none; }
+details[open] summary::after { content: "－"; }
+details .body { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 10px; }
+.list { display: flex; flex-direction: column; gap: 12px; }
+.spin { display: inline-block; width: 1.2em; height: 1.2em; border: 3px solid currentColor; border-inline-end-color: transparent; border-radius: 50%; animation: sp 0.9s linear infinite; }
+@keyframes sp { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+nav { position: fixed; inset-inline: 0; bottom: 0; background: var(--surface); border-top: 3px solid var(--line); display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); z-index: 5; }
+nav button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 4.2em; border: 0; border-radius: 14px; background: transparent; color: var(--muted); font-weight: 700; font-size: .78em; cursor: pointer; }
+nav button svg { width: 2em; height: 2em; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+nav button[aria-current="page"] { background: var(--primary); color: var(--on-primary); }
+</style>
+</head>
+<body>
+<div id="app" dir="rtl" lang="he">
+  <header>
+    <div class="brand">
+      <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M24 44V30"/><path d="M24 30c-9 0-14-7-14-14 5 0 9 2 11 6 0-9 3-14 3-14s3 5 3 14c2-4 6-6 11-6 0 7-5 14-14 14z"/></svg>
+      <h1>שדה הארטישוק</h1>
+    </div>
+    <button type="button" class="iconbtn" id="open-set" aria-label="הגדרות"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg></button>
+    <div class="textsize" role="group" aria-label="גודל כתב">
+      <button type="button" id="ts-m" aria-label="כתב רגיל">א</button>
+      <button type="button" id="ts-l" aria-label="כתב גדול" style="font-size:1.25em">א</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- בדיקה -->
+    <section class="screen" id="v-scan">
+      <h2>בדיקת הצמח</h2>
+      <p class="muted">צלמו את השיח כולו ואת הארטישוק מקרוב. אחרי זה תקבלו חוות דעת והמלצות.</p>
+      <div class="card" id="slots"></div>
+      <div class="card">
+        <label for="notes"><h3>רוצים לספר משהו? (לא חובה)</h3></label>
+        <textarea id="notes" placeholder="למשל: העלים מצהיבים, או שלא השקיתי שבוע"></textarea>
+      </div>
+      <button class="btn primary block" id="go" type="button" disabled>קבלו חוות דעת</button>
+      <div id="scan-msg"></div>
+      <div id="scan-out"></div>
+    </section>
+
+    <!-- מדידה -->
+    <section class="screen" id="v-measure" hidden>
+      <h2>מדידת גודל הארטישוק</h2>
+      <p class="muted">מניחים ליד הארטישוק חפץ שגודלו ידוע, מצלמים, ומסמנים על התמונה בנגיעה.</p>
+      <div class="card">
+        <h3>1. מה הנחתם ליד הארטישוק?</h3>
+        <div class="choices" id="refs"></div>
+        <p class="fine">החפץ צריך להיות באותו מרחק מהמצלמה כמו הארטישוק, ולהיות מכוון אל המצלמה.</p>
+      </div>
+      <div class="card">
+        <h3>2. התמונה</h3>
+        <div class="row" id="m-pick"></div>
+        <button class="btn block" id="m-use" type="button" hidden>להשתמש בתמונת הארטישוק מדף הבדיקה</button>
+      </div>
+      <div class="card">
+        <h3>3. סימון על התמונה</h3>
+        <p id="m-step" aria-live="polite" style="font-weight:700">בחרו תמונה כדי להתחיל.</p>
+        <div class="stage"><canvas id="cv" width="800" height="600"></canvas><div class="empty" id="cv-empty">אין עדיין תמונה</div></div>
+        <div class="legend"><span><i style="background:var(--ref)"></i>החפץ</span><span><i style="background:#C77DFF"></i>רוחב</span><span><i style="background:#5CE1E6"></i>גובה</span></div>
+        <div class="row">
+          <button class="btn" id="m-undo" type="button">מחק נקודה אחרונה</button>
+          <button class="btn" id="m-skip" type="button">דלגו על הגובה</button>
+          <button class="btn" id="m-reset" type="button">התחילו מחדש</button>
+        </div>
+        <p class="fine">אפשר לגרור כל נקודה כדי לדייק אותה.</p>
+      </div>
+      <div class="card" id="m-result" hidden></div>
+    </section>
+
+    <!-- ידע -->
+    <section class="screen" id="v-know" hidden>
+      <h2>מאגר ידע</h2>
+      <p class="muted">מידע מקצועי על גידול ארטישוק, נמשך מהמאגר.</p>
+      <label for="q" class="tag">חיפוש</label>
+      <input type="search" id="q" placeholder="למשל: כנימות, השקיה, קטיף">
+      <div class="chips" id="cats"></div>
+      <div id="know-msg"></div>
+      <div class="list" id="know-list"></div>
+    </section>
+
+    <!-- היסטוריה -->
+    <section class="screen" id="v-hist" hidden>
+      <h2>ההיסטוריה שלי</h2>
+      <p class="muted">הבדיקות והמדידות ששמרתם.</p>
+      <div id="hist-msg"></div>
+      <div class="list" id="hist-list"></div>
+    </section>
+
+    <!-- הגדרות -->
+    <section class="screen" id="v-set" hidden>
+      <h2>הגדרות</h2>
+      <div class="card">
+        <h3>מפתח לחוות דעת אוטומטית</h3>
+        <div class="choices">
+          <label class="choice"><input type="radio" name="prov" value="gemini">Google Gemini (חינמי)</label>
+          <label class="choice"><input type="radio" name="prov" value="claude">Claude (בתשלום)</label>
+        </div>
+        <p class="muted" id="prov-help"></p>
+        <label for="key" class="tag">המפתח</label>
+        <input type="password" id="key" autocomplete="off" placeholder="sk-ant-...">
+        <div class="row"><button class="btn primary" id="key-save" type="button">שמירה</button><button class="btn" id="key-clear" type="button">מחיקת המפתח</button></div>
+        <div id="key-msg" aria-live="polite"></div>
+      </div>
+      <div class="card">
+        <h3>מקור נתונים נוסף (לא חובה)</h3>
+        <p class="muted">כתובת של קובץ JSON עם רשימת נושאים בצורה: [{"title":"","category":"","body":""}]. הנושאים יתווספו למאגר הידע.</p>
+        <label for="src" class="tag">כתובת</label>
+        <input type="text" class="field" id="src" placeholder="https://...">
+        <button class="btn" id="src-save" type="button">שמירה ורענון</button>
+        <div id="src-msg" aria-live="polite"></div>
+      </div>
+      <button class="btn block" id="set-back" type="button">חזרה</button>
+    </section>
+  </main>
+
+  <nav aria-label="תפריט ראשי">
+    <button type="button" data-go="scan"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>בדיקה</button>
+    <button type="button" data-go="measure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 16 16 3l5 5L8 21z"/><path d="m7 12 2 2M10 9l2 2M13 6l2 2"/></svg>מדידה</button>
+    <button type="button" data-go="know"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h7a2 2 0 0 1 2 2v13a2 2 0 0 0-2-2H4zM20 5h-7a2 2 0 0 0-2 2v13a2 2 0 0 1 2-2h7z"/></svg>ידע</button>
+    <button type="button" data-go="hist"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>היסטוריה</button>
+  </nav>
+</div>
+
+<script src="knowledge.js"></script>
+<script>
+(function () {
+  var $ = function (s) { return document.querySelector(s); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+  var store = {
+    get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  };
+
+  /* ---------- text size ---------- */
+  function setScale(s) {
+    document.documentElement.style.setProperty("--scale", s);
+    $("#ts-m").setAttribute("aria-pressed", s === 1);
+    $("#ts-l").setAttribute("aria-pressed", s !== 1);
+    store.set("scale", s);
+  }
+  $("#ts-m").onclick = function () { setScale(1); };
+  $("#ts-l").onclick = function () { setScale(1.25); };
+  setScale(store.get("scale") === "1.25" ? 1.25 : 1);
+
+  /* ---------- navigation ---------- */
+  var screens = ["scan", "measure", "know", "hist", "set"];
+  function go(name) {
+    screens.forEach(function (s) { $("#v-" + s).hidden = s !== name; });
+    document.querySelectorAll("nav button").forEach(function (b) {
+      if (b.dataset.go === name) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+    });
+    window.scrollTo(0, 0);
+  }
+  document.querySelectorAll("nav button").forEach(function (b) { b.onclick = function () { go(b.dataset.go); }; });
+  go("scan");
+
+  /* ---------- images ---------- */
+  function loadBitmap(file) {
+    if (window.createImageBitmap) {
+      return createImageBitmap(file, { imageOrientation: "from-image" }).catch(function () { return viaImg(file); });
+    }
+    return viaImg(file);
+  }
+  function viaImg(file) {
+    return new Promise(function (res, rej) {
+      var u = URL.createObjectURL(file), im = new Image();
+      im.onload = function () { res(im); }; im.onerror = rej; im.src = u;
+    });
+  }
+  function dims(b) { return { w: b.width || b.naturalWidth, h: b.height || b.naturalHeight }; }
+  function toCanvas(bm, max) {
+    var d = dims(bm), k = Math.min(1, max / Math.max(d.w, d.h));
+    var c = document.createElement("canvas");
+    c.width = Math.round(d.w * k); c.height = Math.round(d.h * k);
+    c.getContext("2d").drawImage(bm, 0, 0, c.width, c.height);
+    return c;
+  }
+  function blobOf(c, q) { return new Promise(function (r) { c.toBlob(r, "image/jpeg", q); }); }
+  async function prep(file) {
+    var bm = await loadBitmap(file);
+    var big = toCanvas(bm, 1280), small = toCanvas(big, 220);
+    return { canvas: big, blob: await blobOf(big, 0.85), thumb: small.toDataURL("image/jpeg", 0.6) };
+  }
+
+  /* ---------- state: user + db ---------- */
+  var MODEL = "claude-sonnet-5-5";
+  var records = [], knowledge = (window.KB_SEED || []).slice(), extraKb = [];
+  var photos = {};
+  function loadJSON(k, d) { try { return JSON.parse(store.get(k)) || d; } catch (e) { return d; } }
+  records = loadJSON("records", []);
+  var recordsRef = true;
+  function addRecord(rec) {
+    records.unshift(rec); records = records.slice(0, 40);
+    while (records.length) {
+      try { localStorage.setItem("records", JSON.stringify(records)); break; } catch (e) { records.pop(); }
+    }
+    renderHist();
+  }
+  function toB64(blob) {
+    return new Promise(function (res, rej) {
+      var fr = new FileReader();
+      fr.onload = function () { res(String(fr.result).split(",")[1]); };
+      fr.onerror = rej; fr.readAsDataURL(blob);
+    });
+  }
+  function provider() { return store.get("provider") === "claude" ? "claude" : "gemini"; }
+  function keyName() { return "apikey_" + provider(); }
+  async function callGemini(prompt, blobs, signal, key) {
+    var parts = [];
+    for (var i = 0; i < blobs.length; i++) parts.push({ inline_data: { mime_type: "image/jpeg", data: await toB64(blobs[i]) } });
+    parts.push({ text: prompt });
+    var resp;
+    try {
+      resp = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + encodeURIComponent(key), {
+        method: "POST", signal: signal, headers: { "content-type": "application/json" },
+        body: JSON.stringify({ contents: [{ parts: parts }], generationConfig: { responseMimeType: "application/json", temperature: 0.4 } })
+      });
+    } catch (e) { throw { code: e && e.name === "AbortError" ? "cancelled" : "network" }; }
+    if (resp.status === 400 || resp.status === 401 || resp.status === 403) throw { code: "bad_key" };
+    if (resp.status === 429) throw { code: "rate_limited" };
+    if (!resp.ok) throw { code: "upstream_error" };
+    var data = await resp.json();
+    var txt = ((((data.candidates || [])[0] || {}).content || {}).parts || []).map(function (p) { return p.text || ""; }).join("");
+    var a = txt.indexOf("{"), b = txt.lastIndexOf("}");
+    try { return JSON.parse(txt.slice(a, b + 1)); } catch (e) { throw { code: "invalid_json" }; }
+  }
+  async function callClaude(prompt, blobs, signal) {
+    var key = store.get(keyName());
+    if (!key) throw { code: "no_key" };
+    if (provider() === "gemini") return callGemini(prompt, blobs, signal, key);
+    var content = [];
+    for (var i = 0; i < blobs.length; i++) content.push({ type: "image", source: { type: "base64", media_type: "image/jpeg", data: await toB64(blobs[i]) } });
+    content.push({ type: "text", text: prompt });
+    var resp;
+    try {
+      resp = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST", signal: signal,
+        headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+        body: JSON.stringify({ model: MODEL, max_tokens: 2500, messages: [{ role: "user", content: content }] })
+      });
+    } catch (e) { throw { code: e && e.name === "AbortError" ? "cancelled" : "network" }; }
+    if (resp.status === 401) throw { code: "bad_key" };
+    if (resp.status === 429) throw { code: "rate_limited" };
+    if (!resp.ok) throw { code: "upstream_error" };
+    var data = await resp.json();
+    var txt = (data.content || []).map(function (c) { return c.text || ""; }).join("");
+    var a = txt.indexOf("{"), b = txt.lastIndexOf("}");
+    try { return JSON.parse(txt.slice(a, b + 1)); } catch (e) { throw { code: "invalid_json" }; }
+  }
+
+  var SLOTS = [
+    { id: "bush", title: "השיח כולו", hint: "עמדו במרחק של כמה צעדים", req: true },
+    { id: "head", title: "הארטישוק מקרוב", hint: "צלמו את הפרח מקרוב", req: true },
+    { id: "prob", title: "אזור בעייתי", hint: "עלה כתום, כתם או חרק (לא חובה)", req: false }
+  ];
+
+  function buildSlots() {
+    var host = $("#slots"); host.innerHTML = "";
+    SLOTS.forEach(function (s, i) {
+      var el = document.createElement("div");
+      el.className = "slot";
+      el.innerHTML =
+        '<div class="thumb" id="th-' + s.id + '">' + (i + 1) + '</div>' +
+        '<div class="acts"><div><h3>' + esc(s.title) + '</h3><span class="tag">' + esc(s.hint) + '</span></div>' +
+        '<label class="btn primary" for="cam-' + s.id + '">צלמו עכשיו</label>' +
+        '<label class="btn" for="gal-' + s.id + '">בחרו מהגלריה</label>' +
+        '<input type="file" id="cam-' + s.id + '" accept="image/*" capture="environment" hidden>' +
+        '<input type="file" id="gal-' + s.id + '" accept="image/*" hidden></div>';
+      host.appendChild(el);
+      ["cam-", "gal-"].forEach(function (p) {
+        el.querySelector("#" + p + s.id).onchange = function (e) { onPhoto(s.id, e.target.files[0]); e.target.value = ""; };
+      });
+    });
+  }
+  async function onPhoto(id, file) {
+    if (!file) return;
+    try {
+      photos[id] = await prep(file);
+      $("#th-" + id).innerHTML = '<img alt="התמונה שנבחרה" src="' + photos[id].thumb + '">';
+      updateGo();
+      $("#m-use").hidden = !photos.head;
+    } catch (e) {
+      $("#scan-msg").innerHTML = '<div class="notice">לא הצלחנו לפתוח את התמונה. נסו תמונה אחרת.</div>';
+    }
+  }
+  function updateGo() { $("#go").disabled = !(photos.bush && photos.head); }
+  buildSlots();
+
+  /* ---------- analysis ---------- */
+  var STATUS = {
+    good: { t: "המצב טוב", s: "✔" },
+    attention: { t: "דורש תשומת לב", s: "!" },
+    problem: { t: "יש בעיה לטפל בה", s: "✖" }
+  };
+  var SEV = { good: "תקין", warn: "שימו לב", bad: "בעיה" };
+  var ERR = {
+    no_key: "כדי לקבל חוות דעת צריך להכניס מפתח בהגדרות (כפתור ההגדרות למעלה).",
+    bad_key: "המפתח לא תקין. בדקו אותו בהגדרות.",
+    network: "אין חיבור לאינטרנט. נסו שוב כשיש קליטה.",
+    rate_limited: "בוצעו יותר מדי בקשות. חכו כמה דקות ונסו שוב.",
+    session_expired: "צריך להתחבר מחדש לחשבון.",
+    image_rejected: "אחת התמונות לא התקבלה. נסו לצלם שוב.",
+    invalid_json: "התשובה לא הגיעה בצורה תקינה. לחצו שוב על הכפתור.",
+    upstream_error: "הייתה תקלה זמנית. לחצו שוב על הכפתור."
+  };
+
+  function resultHTML(r) {
+    var st = STATUS[r.status] || STATUS.attention;
+    var h = '<div class="card"><span class="pill ' + esc(r.status in STATUS ? r.status : "attention") + '"><span aria-hidden="true">' + st.s + '</span>' + st.t + '</span>';
+    h += '<h2>' + esc(r.headline) + '</h2><p>' + esc(r.summary) + '</p>';
+    if (r.plant_stage) h += '<p class="muted"><b>שלב הצמח:</b> ' + esc(r.plant_stage) + '</p>';
+    h += '</div>';
+    if (r.findings && r.findings.length) {
+      h += '<div class="card"><h3>מה ראיתי</h3>';
+      r.findings.forEach(function (f) {
+        var sv = SEV[f.severity] ? f.severity : "warn";
+        h += '<div class="finding"><span class="pill ' + sv + '">' + SEV[sv] + '</span><b>' + esc(f.title) + '</b><p class="d">' + esc(f.detail) + '</p></div>';
+      });
+      h += '</div>';
+    }
+    if (r.actions && r.actions.length) {
+      h += '<div class="card"><h3>מה כדאי לעשות</h3><ol class="steps">' + r.actions.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join("") + '</ol></div>';
+    }
+    if (r.harvest || r.recheck) {
+      h += '<div class="card">';
+      if (r.harvest) h += '<p><b>קטיף:</b> ' + esc(r.harvest) + '</p>';
+      if (r.recheck) h += '<p><b>מתי לבדוק שוב:</b> ' + esc(r.recheck) + '</p>';
+      h += '</div>';
+    }
+    if (r.photo_note) h += '<div class="notice">' + esc(r.photo_note) + '</div>';
+    h += '<p class="fine">חוות הדעת נוצרה אוטומטית מתמונות ואינה מחליפה ייעוץ של אגרונום. כשיש ספק, התייעצו עם מדריך חקלאי.</p>';
+    return h;
+  }
+
+  function lastMeasure() {
+    for (var i = 0; i < records.length; i++) if (records[i].type === "measure") return records[i];
+    return null;
+  }
+
+  var ctl = null;
+  $("#go").onclick = async function () {
+    if (!store.get(keyName())) { $("#scan-msg").innerHTML = '<div class="notice">' + ERR.no_key + '</div>'; return; }
+    var btn = $("#go"); btn.disabled = true;
+    $("#scan-out").innerHTML = "";
+    $("#scan-msg").innerHTML = '<div class="card"><p><span class="spin"></span> מסתכלים על התמונות… זה לוקח בערך דקה.</p><button class="btn" id="stop" type="button">עצירה</button></div>';
+    ctl = new AbortController();
+    $("#stop").onclick = function () { ctl.abort(); };
+    var order = ["bush", "head", "prob"].filter(function (k) { return photos[k]; });
+    var labels = { bush: "השיח כולו", head: "הארטישוק מקרוב", prob: "אזור בעייתי" };
+    var m = lastMeasure();
+    var kb = knowledge.map(function (k) { return { נושא: k.title, קטגוריה: k.category, תוכן: k.body }; });
+    var prompt =
+      "אתה אגרונום מומחה בגידול ארטישוק (Cynara cardunculus var. scolymus) בישראל. הקורא הוא אדם מבוגר: כתוב עברית פשוטה, משפטים קצרים, בלי מונחים מקצועיים ללא הסבר.\n" +
+      "התמונות לפי הסדר: " + order.map(function (k, i) { return (i + 1) + ") " + labels[k]; }).join(", ") + ".\n" +
+      "הערות המשתמש: " + ($("#notes").value.trim() || "אין") + "\n" +
+      (m ? "מדידה אחרונה של הארטישוק: רוחב " + m.widthCm + " ס״מ" + (m.heightCm ? ", גובה " + m.heightCm + " ס״מ" : "") + ".\n" : "") +
+      "מאגר הידע (הסתמך עליו כשהוא רלוונטי):\n" + JSON.stringify(kb) + "\n\n" +
+      "הערך את מצב הצמח: עלים, צבע, זקיפות, סימני מחלה או מזיקים, שלב התפתחות הפרח ונוכחות פרחים/ניצנים, והאם הוא מוכן לקטיף. אל תמציא מה שלא נראה בתמונה. אם התמונה לא ברורה, כתוב זאת ב-photo_note.\n" +
+      'החזר JSON בלבד בצורה: {"status":"good|attention|problem","headline":"כותרת קצרה","summary":"2-3 משפטים","plant_stage":"שלב הצמח","findings":[{"title":"","detail":"","severity":"good|warn|bad"}],"actions":["צעד ראשון הכי דחוף"],"harvest":"","recheck":"","photo_note":""}. עד 5 ממצאים ועד 5 פעולות, לפי סדר חשיבות.';
+    try {
+      var r = await callClaude(prompt, order.map(function (k) { return photos[k].blob; }), ctl.signal);
+      $("#scan-msg").innerHTML = "";
+      $("#scan-out").innerHTML = resultHTML(r) + '<div id="save-row"></div>';
+      addRecord({ type: "scan", createdAt: Date.now(), result: r, notes: $("#notes").value.trim(), thumb: photos.head.thumb });
+      $("#save-row").innerHTML = '<p class="fine">נשמר בהיסטוריה.</p>';
+      $("#scan-out").scrollIntoView({ behavior: "smooth", block: "start" });
+    } catch (e) {
+      if (e && e.code === "cancelled") $("#scan-msg").innerHTML = "";
+      else $("#scan-msg").innerHTML = '<div class="notice">' + esc(ERR[e && e.code] || "משהו השתבש. לחצו שוב על הכפתור.") + '</div>';
+    } finally { updateGo(); }
+  };
+
+  /* ---------- measurement ---------- */
+  var REFS = [
+    { id: "card", name: "כרטיס אשראי (האורך שלו)", mm: 85.6 },
+    { id: "c5", name: "מטבע 5 ש״ח", mm: 24 },
+    { id: "c10", name: "מטבע 10 ש״ח", mm: 23.2 }
+  ];
+  var refId = "card", mCanvas = null, pts = [[], [], []], skipH = false, drag = null;
+  var COLORS = ["#F59E0B", "#C77DFF", "#5CE1E6"];
+  var STEPTXT = [
+    "סמנו את שני הקצוות של החפץ (קצה אחד, ואז הקצה השני).",
+    "סמנו את הרוחב של הארטישוק: מצד אחד לצד השני, בנקודה הרחבה ביותר.",
+    "סמנו את הגובה של הארטישוק: מהתחתית ועד הקצה העליון."
+  ];
+  var cv = $("#cv"), cx = cv.getContext("2d");
+
+  $("#refs").innerHTML = REFS.map(function (r, i) {
+    return '<label class="choice"><input type="radio" name="ref" value="' + r.id + '"' + (i === 0 ? " checked" : "") + '>' + esc(r.name) + '</label>';
+  }).join("");
+  document.querySelectorAll('input[name="ref"]').forEach(function (i) { i.onchange = function () { refId = i.value; measure(); }; });
+
+  $("#m-pick").innerHTML =
+    '<label class="btn primary" for="m-cam">צלמו עכשיו</label><label class="btn" for="m-gal">בחרו מהגלריה</label>' +
+    '<input type="file" id="m-cam" accept="image/*" capture="environment" hidden><input type="file" id="m-gal" accept="image/*" hidden>';
+  ["m-cam", "m-gal"].forEach(function (id) {
+    $("#" + id).onchange = async function (e) {
+      var f = e.target.files[0]; e.target.value = ""; if (!f) return;
+      try { var p = await prep(f); setMeasureImage(p.canvas); } catch (x) { $("#m-step").textContent = "לא הצלחנו לפתוח את התמונה."; }
+    };
+  });
+  $("#m-use").onclick = function () { if (photos.head) setMeasureImage(photos.head.canvas); };
+
+  function setMeasureImage(c) {
+    var k = Math.min(1, 1000 / Math.max(c.width, c.height));
+    mCanvas = document.createElement("canvas");
+    mCanvas.width = Math.round(c.width * k); mCanvas.height = Math.round(c.height * k);
+    mCanvas.getContext("2d").drawImage(c, 0, 0, mCanvas.width, mCanvas.height);
+    cv.width = mCanvas.width; cv.height = mCanvas.height;
+    $("#cv-empty").hidden = true;
+    pts = [[], [], []]; skipH = false;
+    measure();
+  }
+  function curStep() {
+    for (var s = 0; s < 3; s++) { if (s === 2 && skipH) return -1; if (pts[s].length < 2) return s; }
+    return -1;
+  }
+  function radius() { return cv.width / 38; }
+  function draw() {
+    if (!mCanvas) return;
+    cx.clearRect(0, 0, cv.width, cv.height);
+    cx.drawImage(mCanvas, 0, 0);
+    var r = radius();
+    pts.forEach(function (list, s) {
+      if (list.length === 2) {
+        cx.beginPath(); cx.moveTo(list[0].x, list[0].y); cx.lineTo(list[1].x, list[1].y);
+        cx.lineWidth = r * 0.5; cx.strokeStyle = "#000"; cx.stroke();
+        cx.lineWidth = r * 0.28; cx.strokeStyle = COLORS[s]; cx.stroke();
+      }
+      list.forEach(function (p) {
+        cx.beginPath(); cx.arc(p.x, p.y, r, 0, 7);
+        cx.fillStyle = COLORS[s]; cx.fill(); cx.lineWidth = r * 0.28; cx.strokeStyle = "#000"; cx.stroke();
+        cx.beginPath(); cx.arc(p.x, p.y, r * 0.22, 0, 7); cx.fillStyle = "#000"; cx.fill();
+      });
+    });
+  }
+  function dist(a) { return Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y); }
+  function sizeNote(w) {
+    if (w < 4) return "קטן. עדיין צעיר, עוד לא לקטוף.";
+    if (w < 7) return "בינוני. ממשיך לגדול, כדאי לבדוק שוב בעוד כמה ימים.";
+    if (w <= 11) return "גודל טוב לקטיף, אם העלעלים עדיין סגורים ודחוסים.";
+    return "גדול מאוד. אם העלעלים מתחילים להיפתח, כנראה התבגר ועדיף לקטוף מיד.";
+  }
+  var lastM = null;
+  function measure() {
+    draw();
+    var s = curStep();
+    $("#m-step").textContent = !mCanvas ? "בחרו תמונה כדי להתחיל." : s >= 0 ? "שלב " + (s + 1) + " מתוך " + (skipH ? 2 : 3) + ": " + STEPTXT[s] : "הסימון הושלם. אפשר לגרור נקודות כדי לדייק.";
+    $("#m-skip").hidden = !(s === 2);
+    $("#m-undo").disabled = !pts.some(function (l) { return l.length; });
+    var box = $("#m-result");
+    lastM = null;
+    if (pts[0].length === 2 && pts[1].length === 2) {
+      var ref = REFS.filter(function (r) { return r.id === refId; })[0];
+      var mmPerPx = ref.mm / dist(pts[0]);
+      var w = dist(pts[1]) * mmPerPx / 10;
+      var h = pts[2].length === 2 && !skipH ? dist(pts[2]) * mmPerPx / 10 : null;
+      lastM = { widthCm: Math.round(w * 10) / 10, heightCm: h ? Math.round(h * 10) / 10 : null, ref: ref.id };
+      box.hidden = false;
+      box.innerHTML = '<h3>התוצאה</h3><div class="measures"><div><div class="tag">רוחב</div><div class="big">' + lastM.widthCm.toFixed(1) + '<span style="font-size:.4em"> ס״מ</span></div></div>' +
+        (h ? '<div><div class="tag">גובה</div><div class="big">' + lastM.heightCm.toFixed(1) + '<span style="font-size:.4em"> ס״מ</span></div></div>' : '') +
+        '</div><p>' + esc(sizeNote(w)) + '</p><p class="fine">המדידה מדויקת בערך עד חצי סנטימטר, כשהחפץ והארטישוק באותו מרחק מהמצלמה.</p>' +
+        '<button class="btn primary block" id="m-save" type="button"' + (recordsRef ? "" : " disabled") + '>שמרו את המדידה</button><div id="m-saved" aria-live="polite"></div>';
+      $("#m-save").onclick = saveMeasure;
+    } else box.hidden = true;
+  }
+  async function saveMeasure() {
+    if (!lastM || !recordsRef) return;
+    var b = $("#m-save"); b.disabled = true;
+    try {
+      var t = toCanvas(mCanvas, 220).toDataURL("image/jpeg", 0.6);
+      addRecord({ type: "measure", createdAt: Date.now(), widthCm: lastM.widthCm, heightCm: lastM.heightCm, thumb: t });
+      $("#m-saved").innerHTML = '<div class="pill good"><span aria-hidden="true">✔</span>נשמר בהיסטוריה</div>';
+    } catch (e) { $("#m-saved").innerHTML = '<div class="notice">לא הצלחנו לשמור. נסו שוב.</div>'; b.disabled = false; }
+  }
+  function toImg(e) {
+    var r = cv.getBoundingClientRect();
+    return { x: (e.clientX - r.left) * cv.width / r.width, y: (e.clientY - r.top) * cv.height / r.height };
+  }
+  cv.addEventListener("pointerdown", function (e) {
+    if (!mCanvas) return;
+    var p = toImg(e), best = null, bd = radius() * 2.4;
+    pts.forEach(function (list, s) { list.forEach(function (q, i) { var d = Math.hypot(q.x - p.x, q.y - p.y); if (d < bd) { bd = d; best = { s: s, i: i }; } }); });
+    if (best) drag = best;
+    else { var s = curStep(); if (s >= 0) { pts[s].push(p); drag = { s: s, i: pts[s].length - 1 }; } }
+    if (drag) cv.setPointerCapture(e.pointerId);
+    measure();
+  });
+  cv.addEventListener("pointermove", function (e) {
+    if (!drag) return;
+    var p = toImg(e); pts[drag.s][drag.i] = { x: Math.max(0, Math.min(cv.width, p.x)), y: Math.max(0, Math.min(cv.height, p.y)) };
+    measure();
+  });
+  ["pointerup", "pointercancel"].forEach(function (t) { cv.addEventListener(t, function () { drag = null; }); });
+  $("#m-undo").onclick = function () {
+    for (var s = 2; s >= 0; s--) if (pts[s].length) { pts[s].pop(); break; }
+    skipH = false; measure();
+  };
+  $("#m-skip").onclick = function () { skipH = true; measure(); };
+  $("#m-reset").onclick = function () { pts = [[], [], []]; skipH = false; measure(); };
+  measure();
+
+  /* ---------- knowledge ---------- */
+  var cat = "הכול";
+  function renderKnow() {
+    var q = $("#q").value.trim();
+    var cats = ["הכול"].concat(knowledge.map(function (k) { return k.category; }).filter(function (c, i, a) { return c && a.indexOf(c) === i; }));
+    $("#cats").innerHTML = cats.map(function (c) { return '<button type="button" class="chip" aria-pressed="' + (c === cat) + '" data-c="' + esc(c) + '">' + esc(c) + '</button>'; }).join("");
+    $("#cats").querySelectorAll("button").forEach(function (b) { b.onclick = function () { cat = b.dataset.c; renderKnow(); }; });
+    var list = knowledge.filter(function (k) {
+      return (cat === "הכול" || k.category === cat) && (!q || (k.title + " " + k.body + " " + (k.category || "")).indexOf(q) >= 0);
+    });
+    $("#know-list").innerHTML = list.map(function (k) {
+      return '<details><summary><span>' + esc(k.title) + '</span><span class="tag">' + esc(k.category) + '</span></summary><div class="body">' +
+        String(k.body || "").split("\n").map(function (p) { return '<p>' + esc(p) + '</p>'; }).join("") + '</div></details>';
+    }).join("");
+    $("#know-msg").innerHTML = list.length ? "" : '<div class="notice">' + (knowledge.length ? "לא נמצא מידע מתאים." : "המאגר עדיין ריק.") + '</div>';
+  }
+  var qTimer = null;
+  $("#q").oninput = function () { renderKnow(); clearTimeout(qTimer); qTimer = setTimeout(wikiSearch, 700); };
+
+  /* external data: Hebrew Wikipedia + optional custom JSON source */
+  async function wikiSearch() {
+    var q = $("#q").value.trim();
+    var term = "ארטישוק" + (q ? " " + q : "");
+    var ck = "wiki:" + term, hit = loadJSON(ck, null);
+    try {
+      if (!hit || Date.now() - hit.t > 7 * 864e5) {
+        var u = "https://he.wikipedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrlimit=4&gsrsearch=" + encodeURIComponent(term) +
+          "&prop=extracts&exintro=1&explaintext=1&exchars=900";
+        var j = await (await fetch(u)).json();
+        var pages = Object.keys((j.query || {}).pages || {}).map(function (k) { return j.query.pages[k]; }).sort(function (a, b) { return a.index - b.index; });
+        hit = { t: Date.now(), items: pages.map(function (p) { return { title: p.title, category: "ויקיפדיה", body: p.extract || "", order: 100 + p.index }; }) };
+        store.set(ck, JSON.stringify(hit));
+      }
+      mergeKb(hit.items);
+    } catch (e) { /* offline: keep what we have */ }
+  }
+  function mergeKb(items) {
+    var seen = {};
+    extraKb = extraKb.filter(function (k) { return k.category !== "ויקיפדיה"; }).concat(items);
+    knowledge = (window.KB_SEED || []).concat(extraKb).filter(function (k) { if (seen[k.title]) return false; seen[k.title] = 1; return !!k.body; })
+      .sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
+    renderKnow();
+  }
+  async function customSource() {
+    var u = store.get("src"); if (!u) return;
+    try {
+      var arr = await (await fetch(u)).json();
+      if (Array.isArray(arr)) { extraKb = extraKb.concat(arr.filter(function (k) { return k && k.title && k.body; }).map(function (k, i) { return { title: String(k.title), category: String(k.category || "מקור נוסף"), body: String(k.body), order: 50 + i }; })); mergeKb([]); return true; }
+    } catch (e) { return false; }
+    return false;
+  }
+
+  /* ---------- history ---------- */
+  function fmtDate(t) { try { return new Date(t).toLocaleDateString("he-IL", { day: "numeric", month: "long", year: "numeric" }); } catch (e) { return ""; } }
+  function renderHist() {
+    $("#hist-msg").innerHTML = records.length ? "" : '<div class="notice">עוד אין כלום. אחרי בדיקה או מדידה הן יישמרו כאן.</div>';
+    $("#hist-list").innerHTML = records.map(function (r) {
+      var img = r.thumb ? '<img alt="" src="' + esc(r.thumb) + '" style="width:5em;height:5em;object-fit:cover;border-radius:12px">' : "";
+      if (r.type === "measure") {
+        return '<div class="card" style="flex-direction:row;align-items:center">' + img + '<div><b>מדידה · ' + esc(fmtDate(r.createdAt)) + '</b><p>רוחב ' + esc(r.widthCm) + ' ס״מ' + (r.heightCm ? ', גובה ' + esc(r.heightCm) + ' ס״מ' : '') + '</p></div></div>';
+      }
+      var res = r.result || {}, st = STATUS[res.status] || STATUS.attention;
+      return '<details><summary><span style="display:flex;gap:12px;align-items:center;min-width:0">' + img + '<span><b>בדיקה · ' + esc(fmtDate(r.createdAt)) + '</b><br><span class="pill ' + esc(res.status in STATUS ? res.status : "attention") + '" style="font-size:.8em">' + st.s + ' ' + st.t + '</span></span></span></summary><div class="body">' + resultHTML(res) + '</div></details>';
+    }).join("");
+  }
+
+  /* ---------- connect ---------- */
+  /* ---------- settings ---------- */
+  $("#open-set").onclick = function () { go("set"); };
+  $("#set-back").onclick = function () { go("scan"); };
+  var HELP = {
+    gemini: "חינמי, בלי כרטיס אשראי. נכנסים ל-aistudio.google.com/apikey עם חשבון Google, לוחצים Create API key ומעתיקים את המפתח לכאן. יש מכסה יומית חינמית, שמספיקה לכמה בדיקות ביום.",
+    claude: "בתשלום לפי שימוש. מפתח מ-console.anthropic.com. בדרך כלל איכות הניתוח גבוהה יותר."
+  };
+  function showProv() {
+    var p = provider();
+    document.querySelectorAll('input[name="prov"]').forEach(function (i) { i.checked = i.value === p; });
+    $("#prov-help").textContent = HELP[p] + " המפתח נשמר רק בטלפון הזה.";
+    $("#key").value = store.get(keyName()) || "";
+    $("#key").placeholder = p === "gemini" ? "AIza..." : "sk-ant-...";
+    $("#key-msg").innerHTML = "";
+  }
+  document.querySelectorAll('input[name="prov"]').forEach(function (i) { i.onchange = function () { store.set("provider", i.value); showProv(); }; });
+  showProv();
+  $("#key-save").onclick = function () {
+    var v = $("#key").value.trim();
+    if (!v) { $("#key-msg").innerHTML = '<div class="notice">הדביקו את המפתח בשדה.</div>'; return; }
+    store.set(keyName(), v);
+    $("#key-msg").innerHTML = '<div class="pill good"><span aria-hidden="true">✔</span>המפתח נשמר</div>';
+  };
+  $("#key-clear").onclick = function () { try { localStorage.removeItem(keyName()); } catch (e) {} $("#key").value = ""; $("#key-msg").innerHTML = '<div class="pill good">המפתח נמחק</div>'; };
+  $("#src").value = store.get("src") || "";
+  $("#src-save").onclick = async function () {
+    store.set("src", $("#src").value.trim());
+    var ok = await customSource();
+    $("#src-msg").innerHTML = ok ? '<div class="pill good"><span aria-hidden="true">✔</span>נטען</div>' : '<div class="notice">לא הצלחנו לקרוא את הכתובת.</div>';
+  };
+
+  /* ---------- start ---------- */
+  mergeKb([]);
+  renderHist();
+  measure();
+  wikiSearch();
+  customSource();
+  if (!store.get(keyName())) $("#scan-msg").innerHTML = '<div class="notice">' + ERR.no_key + '</div>';
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
+})();
+</script>
+</body></html>

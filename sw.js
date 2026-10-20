@@ -1,4 +1,4 @@
-var CACHE = "artichoke-v1";
+﻿var CACHE = "artichoke-v2";
 var FILES = ["./", "./index.html", "./knowledge.js", "./manifest.webmanifest", "./icon.svg", "./icon-192.png", "./icon-512.png"];
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES); }));
@@ -18,3 +18,4 @@ self.addEventListener("fetch", function (e) {
     return r;
   }).catch(function () { return caches.match(e.request); }));
 });
+

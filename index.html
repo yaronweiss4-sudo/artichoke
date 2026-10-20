@@ -714,6 +714,7 @@ nav button[aria-current="page"] { background: var(--primary); color: var(--on-pr
     var v = $("#key").value.trim();
     if (!v) { $("#key-msg").innerHTML = '<div class="notice">הדביקו את המפתח בשדה.</div>'; return; }
     store.set(keyName(), v);
+    $("#scan-msg").innerHTML = "";
     $("#key-msg").innerHTML = '<div class="pill good"><span aria-hidden="true">✔</span>המפתח נשמר</div>';
   };
   $("#key-clear").onclick = function () { try { localStorage.removeItem(keyName()); } catch (e) {} $("#key").value = ""; $("#key-msg").innerHTML = '<div class="pill good">המפתח נמחק</div>'; };
